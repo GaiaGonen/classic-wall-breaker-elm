@@ -2,6 +2,8 @@ import Browser
 import Html exposing (..)
 import Svg exposing (..)
 import Svg.Attributes exposing (..)
+import Json.Decode as Decode
+import Browser.Events as Events
 
 
 --MAIN
@@ -31,23 +33,25 @@ init _ =
 --UPDATE
 
 type Msg
-  = MoveRight
-  | MoveLeft
+  = Move String
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    MoveRight ->
-      ( { model | xPos = model.xPos + 5 }, Cmd.none )
-
-    MoveLeft ->
-      ( { model | xPos = model.xPos - 5 }, Cmd.none )
+    Move code ->
+      if code == "39" then
+        ({ model | xPos = model.xPos - 5 }, Cmd.none)
+      else if code == "37" then
+        ({ model | xPos = model.xPos + 5 }, Cmd.none)
+      else
+        ( model, Cmd.none )
 
 --SUBSCRIPTIONS
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Sub.none
+  Events.onKeyDown (Decode.map Move keyDecoder)
+
 
 --VIEW
 
@@ -65,3 +69,8 @@ drawBouncer model =
        , Svg.Attributes.width (String.fromInt model.width)
        , Svg.Attributes.height (String.fromInt model.height)
        , color model.color ] []
+
+
+keyDecoder : Decode.Decoder String
+keyDecoder =
+  Decode.field "key" Decode.string
